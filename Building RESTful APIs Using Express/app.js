@@ -2,18 +2,27 @@
 const Joi = require('joi');
 
 // Express
-const { request, response } = require('express');
+const logger = require('./logger');
 const express  = require('express');
 const app= express();
 
+// helemt and morgan
+const helmet = require('helmet');
+const morgan = require('morgan');
+
 app.use(express.json());
 
+app.use(express.static('public'));
+app.use(express.urlencoded());
+app.use(logger);
+app.use(helmet());
+app.use(morgan('tiny'));
 
 const  courses = [ 
     {id: 1, name: 'course1'},
     {id: 2, name: 'course2'},
-    {id: 3, name: 'course3'}
-]
+    {id: 3, name: 'course3'},
+];
 
 /*
 //methods 
