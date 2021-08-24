@@ -1,14 +1,11 @@
-// joi 
 const Joi = require('joi');
-
-// Express
 const logger = require('./logger');
 const express  = require('express');
 const app= express();
-
-// helemt and morgan
 const helmet = require('helmet');
 const morgan = require('morgan');
+const config = require('config');
+
 
 app.use(express.json());
 
