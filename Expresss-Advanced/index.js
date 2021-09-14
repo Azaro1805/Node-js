@@ -42,7 +42,7 @@ app.delete();
 
 
 app.get('/', (req,res) => {
-    res.send('Hello word');
+    res.send('Hello Or');
 });
 
 app.get('/api/courses', (req,res) => {
