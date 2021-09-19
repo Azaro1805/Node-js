@@ -1,127 +1,37 @@
-const config = require('config');
-const morgan = require('morgan');
-const helmet = require('helmet');
-const Joi = require('joi');
-const logger = require('./logger');
-const express = require('express');
+const config = require("config");
+const morgan = require("morgan");
+const helmet = require("helmet");
+const Joi = require("joi");
+const logger = require("./middleware/logger");
+const express = require("express");
 const app = express();
+const debug = require("debug")("app:startup");
+const courses = require('./routes/courses');
+const home = require('./routes/home');
 
+app.set("view engine", "pug");
+app.set("views", "./views");
 
 app.use(express.json());
-app.use(express.static('public'));
-app.use(express.urlencoded({extended: true})); //with exteded = true with can send arrays and more complex format.
+app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true })); //with exteded = true with can send arrays and more complex format.
 app.use(logger);
 app.use(helmet());
 
+//routes
+app.use('/api/courses', courses);
+app.use('/', home);
+
 //Configuration
-console.log('Appliction Name: ' + config.get('name'));
-console.log('Mail Server: ' + config.get('mail.host'));
-//console.log('Mail Password: ' + config.get('mail.password')); //make problem...
+console.log("Appliction Name: " + config.get("name"));
+console.log("Mail Server: " + config.get("mail.host"));
+console.log("Mail password: " + config.get("mail.password"));
 
-if(app.get('env') === 'development'){
-    app.use(morgan('tiny'));
-    console.log('Morgan enabled...')
+if (app.get("env") === "development") {
+  app.use(morgan("tiny"));
+  debug("Morgan enabled...");
 }
 
-const  courses = [ 
-    {id: 1, name: 'course1'},
-    {id: 2, name: 'course2'},
-    {id: 3, name: 'course3'},
-];
-
-
-
-/*
-//methods 
-app.get();
-app.post();
-app.put();
-app.delete();
-*/
-
-
-
-app.get('/', (req,res) => {
-    res.send('Hello Or');
-});
-
-app.get('/api/courses', (req,res) => {
-    //res.send('Welcome to the course, have a nice day.');
-    res.send([courses]);
-
-})
-
-app.get('/api/courses/:id', (req,res) => {
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) return res.status(404).send('The course of this given ID was not found'); 
-    res.send("Welcome to the course number " + req.params.id); 
-});
-
-//post -  how we add a new course.
-app.post('/api/courses', (req,res) => {
-
-    const {error} = ValidateCourse(req.body); //{error} = result.error 
-    if(error) return res.status(400).send(error.details[0].message);
-
-    const course = {
-        id: courses.length + 1,
-        name: req.body.name
-    };
-
-    courses.push(course);
-    res.send(course);
-});
-
-// PUT
-app.put('/api/courses/:id', (req,res) => {
-    //Look up the course 
-    //if not existing, return 404 - not found
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) return res.status(404).send('The course of this given ID was not found'); 
-    
-    //validate
-    //if invalid, return 400 - bad request
-
-    //const result =  ValidateCourse(req.body);
-    const {error} = ValidateCourse(req.body); //{error} = result.error 
-    if(error) return res.status(400).send(error.details[0].message);
-    
-
-    //update course
-    course.name = req.body.name;
-    res.send(course);
-
-    //return the updated course
-});
-
-// Delete
-app.delete('/api/courses/:id', (req,res) => {
-    //Look up the course 
-    //if not existing, return 404 - not found
-    const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) return res.status(404).send('The course of this given ID was not found'); 
-
-    //Delete
-    
-    const index = courses.indexOf(course);
-    courses.splice(index, 1);
-
-    res.send(course);
-});
-
-
-// Validate course function
-function ValidateCourse(course){
-    const schema = {
-        name: Joi.string().min(3).required()
-    };
-
-    return Joi.validate(course, schema);
-}
-
-// PORT 
-const port = process.env.PORT|| 3000;
+// PORT
+const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
-
-
-
